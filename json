@@ -1,0 +1,82 @@
+#!/bin/bash
+##-
+## ---JSON GENERATOR---
+##
+#- AUTHOR:
+#-	    Denver Atwood
+#- DESCRIPTION:
+#-      Creates JSON objects from the given parameters.
+#-      Version 1.0 
+#-	        Supports single layer deep object creation, basically
+#-	        only for properties files
+## OPTIONS:
+##      -o [objectname]                             {{{1.0}}}
+##		    The name of the JSON object to create
+##      -v                                          {{{1.0}}}
+##          Print the version of the program
+##      -h                                          {{{1.0}}}
+##          Print the help screen
+##      -i                                          {{{1.0}}}
+##          Print program information
+## SYNTAX:
+##	    json -o $OBJECTNAME "$FIELD0:$JSONOBJECT0" "$FIELD1:$JSONOBJECT1" ... "$FIELDx:$JSONOBJECTx"
+##	        will produce : 
+##	            "$OBJECTNAME" : {
+##	                "$FIELD0" : $JSONOBJECT0,
+##	                "$FIELD1" : $JSONOBJECT1,
+##	                	...
+##	                "$FIELDx" : $JSONOBJECTx
+##              }
+###
+
+VERSION="1.0"
+OBJECTNAME="object"
+
+_help() {
+	cat $0 | awk '/###/'
+	exit 1
+}
+_info() {
+	cat $0 | grep '#-'
+	exit 1
+}
+
+while getopts :o:vh opt; do
+    case $opt in
+        o)
+            OBJECTNAME=${OPTARG}
+            ;;
+		h)
+			_help
+			;;
+		i)
+			_info
+			;;
+        \?)
+            echo "Invalid option: -$OPTARG" >&2
+			exit 1
+            ;;
+        :)
+			echo "Option '-$OPTARG' requires an argument." >&2
+			cat $0 | grep -A 1 "##      -$OPTARG" | tr '##' ' '
+			exit 1
+			;;
+    esac
+done
+
+echo "{"
+echo "  \"$OBJECTNAME\" : {"
+
+start=$OPTIND
+for i in $(seq $start $#); do
+	raw="${!i}"
+	if [ "${raw//:}" == "$raw" ]; then
+		echo "    \"$raw\" : \"\""
+	else
+		obj=(${raw//:/' '})
+		echo "    \"${obj[0]}\" : \"${obj[1]}\""
+	fi
+done
+
+echo "  }"
+echo "}"

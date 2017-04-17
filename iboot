@@ -1,0 +1,54 @@
+#!/bin/bash
+_help() {
+    echo "Usage:"
+    echo "    iboot -o on|off IP"
+}
+
+while getopts "o:h" o; do  
+    case $o in
+        o)  
+            power=${OPTARG}
+            ;;
+        h)
+            _help
+            ;;
+        \?)
+            echo "Bad options! Try -h"
+            exit 1
+            ;;
+    esac
+done
+
+ip=""
+[ $# -eq 0 ] && _help && exit 1
+
+if [ ! -z "${!OPTIND}" ]; then
+    ip="${!OPTIND}"
+
+    if [ -z $power ]; then
+	    power="on"
+	    _power="$(wget "http://$ip/?s=2&u=admin&p=admin" -q -O - | grep status)"
+	    _power=${_power%</*}
+	    _power=${_power#*>}
+	    _power=${_power,,}
+	    echo $_power
+	    if [ "$_power" == "on" ]; then 
+	        power="off"
+	    fi  
+	    echo $power
+	fi
+
+    {
+		sleep .5
+		echo admin
+		echo admin
+		sleep .5
+		echo set outlet $power
+        sleep .5
+		echo logout
+	} | telnet $ip
+else
+    echo "No IP supplied!"
+    _help
+    exit 1
+fi

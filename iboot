@@ -1,6 +1,11 @@
 #!/bin/bash
 _help() {
+    echo "_help() {
     echo "Usage:"
+    echo "    iboot [-o on|off|toggle] IP"
+    echo "    Not supplying an option will attempt to toggle"
+}
+Usage:"
     echo "    iboot -o on|off IP"
 }
 
